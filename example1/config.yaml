@@ -1,0 +1,34 @@
+cluster:
+  name: "cluster"
+  node_num: 500
+  cards_per_node: 8
+  priority: "best fit"    #best fit、big first、best similar
+tasks:
+  - name: "snt9b"
+    path: "data/snt9b/sourceDataSnt9b/*.json"
+    save_csv_path: "data/snt9b/csv"
+    merge_data_path: "data/snt9b/merge_data.csv"
+    useful_data_path: "data/snt9b/useful_data.csv"
+    type: multi               #multi、single
+  # - name: "mydata"
+  #   useful_data_path: "data/mydata/test_data.csv"
+  #   type: multi
+monitor:
+  name: "monitor"
+  base_path: "monitor"
+schedulers:
+  - name: "FCFS"
+    time_step: 10000 
+    wl_priority: "cards_small_first"    #cards_big_first、cards_small_first、first come first sever、last come last sever、highters response reatio next              
+    wl_alpha: 100      
+    # wl_migreate_priority: "big first"   #small first、wait list、best fit piece first   
+logger:
+  log_file: "logs/cluster_simulation.log"    
+  log_level: "INFO"                          #DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(levelname)s - %(message)s"  
+  filemode: "w"
+plotter:
+  save_path: "figure"
+config:
+  save_path: "config"
+
