@@ -23,6 +23,7 @@ class Task:
         self.checkpoint_time = 0
         self.node_id = []
         self.status = "UNARRIVAL"
+        self.release = False
 
         # real_parameter
         self.real_start_time = None
