@@ -170,7 +170,12 @@ class FCFS(Scheduler):
                             wl.delete_task(task.task_id)
             
             #5.监控各种信息
-            info = monitor.monitor(cluster, tasks, current_time)
+            info, is_migrate, is_stop_big = monitor.monitor(cluster, tasks, wl, current_time)
+            if is_migrate:
+                self.migrate(cluster, tasks, wl, current_time)
+            if is_stop_big:
+                self.stop_big(cluster, tasks, wl, current_time)
+                
             # wl_first_task = wl.pop_task(current_time)
             # if wl_first_task is not None:
             #     print(info + f', wl_first_task.cards:{wl_first_task.cards}, wl_first_task.node_num:{wl_first_task.node_num}')
@@ -178,7 +183,27 @@ class FCFS(Scheduler):
             #     print(info + ', wl_first_task.cards:0, wl_first_task.node_num:0')
             #6.时间继续增加
             current_time += self.time_step
-            
+    
+    def migrate(self, cluster, tasks, wl, current_time):
+        # ! TODO
+        #! 整理的思路，首先筛选未填满的节点，按照碎片升序，任务数量升序的方法排序,然后目的就是尽量迁移前面的节点中的任务到最后面的节点中去
+        used_nodes = [node for node in cluster.nodes if node.cards != cluster.cards_per_node and node.cards != 0]
+        used_nodes.sort(key=lambda x: (x.cards, len(x.task_list)))
+
+        # 遍历节点，尝试将任务迁移到碎片更多的节点上
+        for node in used_nodes:
+            for task in node.tasks:
+                node = find_node(task.cards)
+                #将任务尽可能安排去别的节点，尽量按照最佳适应去安排 
+
+                # 寻找最佳适应节点，利用fliter来筛选
+
+                # 如果找到了合适的目标节点，则迁移任务
+
+
+    def stop_big(self, cluster, tasks, wl, current_time):
+        pass
+    #! TODO
 
 
 class MIG(Scheduler):

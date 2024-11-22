@@ -9,7 +9,7 @@ class Monitor:
         self.frag_alpha = monitorConfig['frag_alpha']
         self.free_rate_alpha = monitorConfig['free_rate_alpha']
 
-    def monitor(self, cluster, tasks, current_time):
+    def monitor(self, cluster, tasks, wl, current_time):
     
         # print(current_time)
         monitoring_data = self.get_state(cluster, tasks, current_time)
@@ -27,49 +27,31 @@ class Monitor:
         logging.info(f"Monitoring data saved to {self.save_path}")
 
         #! 判断是否需要进行碎片整理
-        # is_migrate = self.check_fragment(cluster, tasks, current_time)
+        is_migrate = self.check_fragment(cluster, tasks, wl, current_time)
         
         #! 判断是否需要把大的任务先停
         # if state:
         #     self.defrag(cluster, tasks, current_time, state)
-        # is_stop_big = self.check_stopBig()
+        is_stop_big = self.check_stopBig(cluster, tasks, wl, current_time)
         
         # return monitoring_data, is_migrate, is_stop_big
-        return monitoring_data
+        return monitoring_data, is_migrate, is_stop_big
 
 
-    def check_fragment(self, cluster, tasks, current_time):
+    def check_fragment(self, cluster, tasks, wl, current_time):
         # ! 根据集群状况，判断是否需要进行碎片整理， 碎片太多，占据了空闲率的一半, 并且空闲率超过阈值了，那就需要整理了
         state = self.get_state(cluster, tasks, current_time)
         if state['free_rate'] >= self.free_rate_alpha and float(state['fragment_rate']/state['free_rate']) >= self.frag_alpha:       #! 需要整理了
             return True
         return False
-        
     
-    def defrag(self, cluster, tasks, current_time, state):
-        #! 整理的思路，首先筛选未填满的节点，按照碎片升序，任务数量升序的方法排序
-        #! 然后找到两个最配对的节点，由迁移代价较少的那一个节点将任务迁移到另外一个节点中
-        used_nodes = [node for node in cluster.nodes if node.cards != cluster.cards_per_node and node.cards != 0]
-        if not used_nodes:
-            return
-
-        # 按碎片数量和任务数量排序
-        used_nodes.sort(key=lambda n: (n.cards, len(n.tasks)))
-
-        for i in range(len(used_nodes) - 1):
-            node_a = used_nodes[i]
-            node_b = used_nodes[len(used_nodes)-1 - i]
-
-            # 选择迁移代价较小的节点进行任务迁移
-            if node_a.cards + node_b.cards <= cluster.cards_per_node:
-                if len(node_a.tasks) < len(node_b.tasks):
-                    node_src_Id = node_a.Id
-                    node_des_Id = node_b.Id 
-                else:
-                    node_src_Id = node_b.Id
-                    node_des_Id = node_a.Id 
-                cluster.migrate_task(node_src_Id, node_des_Id, current_time)
-        return None
+    def check_stopbig(self, cluster, tasks, wl, current_time):
+        # ! 根据集群状况，判断是否需要将较大的任务先挪出来，判断标准就是集群中的任务大量阻塞
+        state = self.get_state(cluster, tasks, current_time)
+        if state['num task in wl'] 
+            return True
+        return False
+    
 
     def get_state(self, cluster, tasks, current_time):
         """
