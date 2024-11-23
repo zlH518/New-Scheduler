@@ -27,6 +27,10 @@ schedulers:
     wl_free_max_rate: 0.8   #选择动态的时候需要设置wl转化的集群空闲率最高阈值
     wl_free_min_rate: 0.1   #选择动态的时候需要设置wl转化的集群空闲率最低阈值
     wl_tasks_num: 500  #选择动态的时候需要设置wl转化的wl任务数量阈值
+migrateSolver:
+  migration_cost_weight: 1.0    #迁移代价的影响权重
+  checkpoint_weight: 1.0     #有无checkpoint的影响权重
+  load_balance_weight: 1.0    #负载是否均衡的影响权重
 logger:
   log_file: "logs/cluster_simulation.log"    
   log_level: "INFO"                          #DEBUG, INFO, WARNING, ERROR, CRITICAL
