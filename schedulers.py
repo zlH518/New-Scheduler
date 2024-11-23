@@ -185,20 +185,21 @@ class FCFS(Scheduler):
             current_time += self.time_step
     
     def migrate(self, cluster, tasks, wl, current_time):
-        # ! TODO
-        #! 整理的思路，首先筛选未填满的节点，按照碎片升序，任务数量升序的方法排序,然后目的就是尽量迁移前面的节点中的任务到最后面的节点中去
-        used_nodes = [node for node in cluster.nodes if node.cards != cluster.cards_per_node and node.cards != 0]
-        used_nodes.sort(key=lambda x: (x.cards, len(x.task_list)))
+        # # ! TODO
+        # #! 整理的思路，首先筛选未填满的节点，按照碎片升序，任务数量升序的方法排序,然后目的就是尽量迁移前面的节点中的任务到最后面的节点中去
+        # used_nodes = [node for node in cluster.nodes if node.cards != cluster.cards_per_node and node.cards != 0]
+        # used_nodes.sort(key=lambda x: (x.cards, len(x.task_list)))
 
-        # 遍历节点，尝试将任务迁移到碎片更多的节点上
-        for node in used_nodes:
-            for task in node.tasks:
-                node = find_node(task.cards)
+        # # 遍历节点，尝试将任务迁移到碎片更多的节点上
+        # for node in used_nodes:
+        #     for task in node.tasks:
+        #         node = find_node(task.cards)
                 #将任务尽可能安排去别的节点，尽量按照最佳适应去安排 
 
                 # 寻找最佳适应节点，利用fliter来筛选
 
                 # 如果找到了合适的目标节点，则迁移任务
+        pass
 
 
     def stop_big(self, cluster, tasks, wl, current_time):

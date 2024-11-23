@@ -14,7 +14,7 @@ def setup_logging(config):
     )
 if __name__ == "__main__":
     import yaml
-    with open('code/example/config.yaml', 'r') as f:
+    with open('example1/config.yaml', 'r') as f:
         config = yaml.safe_load(f)
     setup_logging(config["logger"])
     logging.info("hello")

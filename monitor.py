@@ -32,7 +32,7 @@ class Monitor:
         #! 判断是否需要把大的任务先停
         # if state:
         #     self.defrag(cluster, tasks, current_time, state)
-        is_stop_big = self.check_stopBig(cluster, tasks, wl, current_time)
+        is_stop_big = self.check_stopbig(cluster, tasks, wl, current_time)
         
         # return monitoring_data, is_migrate, is_stop_big
         return monitoring_data, is_migrate, is_stop_big
@@ -40,17 +40,19 @@ class Monitor:
 
     def check_fragment(self, cluster, tasks, wl, current_time):
         # ! 根据集群状况，判断是否需要进行碎片整理， 碎片太多，占据了空闲率的一半, 并且空闲率超过阈值了，那就需要整理了
-        state = self.get_state(cluster, tasks, current_time)
-        if state['free_rate'] >= self.free_rate_alpha and float(state['fragment_rate']/state['free_rate']) >= self.frag_alpha:       #! 需要整理了
-            return True
-        return False
+        # state = self.get_state(cluster, tasks, current_time)
+        # if state['free_rate'] >= self.free_rate_alpha and float(state['fragment_rate']/state['free_rate']) >= self.frag_alpha:       #! 需要整理了
+        #     return True
+        # return False
+        pass
     
     def check_stopbig(self, cluster, tasks, wl, current_time):
         # ! 根据集群状况，判断是否需要将较大的任务先挪出来，判断标准就是集群中的任务大量阻塞
-        state = self.get_state(cluster, tasks, current_time)
-        if state['num task in wl'] 
-            return True
-        return False
+        # state = self.get_state(cluster, tasks, current_time)
+        # if state['num task in wl'] 
+        #     return True
+        # return False
+        pass
     
 
     def get_state(self, cluster, tasks, current_time):
