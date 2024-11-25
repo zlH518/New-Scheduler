@@ -21,6 +21,8 @@ class FCFS(Scheduler):
 
         self.completed_tasks = []
 
+#test
+
     def __init__run(self, cluster, tasks, monitor):
         cluster.tasks = tasks
         self.monitor = monitor
