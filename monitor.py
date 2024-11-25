@@ -9,10 +9,8 @@ class Monitor:
         self.frag_alpha = monitorConfig['frag_alpha']
         self.free_rate_alpha = monitorConfig['free_rate_alpha']
 
-    def monitor(self, cluster, tasks, wl, current_time):
-    
-        # print(current_time)
-        monitoring_data = self.get_state(cluster, tasks, current_time)
+    def monitor(self, cluster, tasks, current_time):
+        monitoring_data = self.__get_state(cluster, tasks, current_time)
         print(f'current_time:{current_time}, free_rate:{monitoring_data['free_rate']}, task num in wl:{monitoring_data['num task in wl']}, unused_nodes:{monitoring_data['unused_node_num']}, fragment_rate:{monitoring_data['fragment_rate']}')
 
         if os.path.exists(self.save_path):
@@ -25,37 +23,10 @@ class Monitor:
             df.to_csv(self.save_path, index=False)
 
         logging.info(f"Monitoring data saved to {self.save_path}")
-
-        #! 判断是否需要进行碎片整理
-        is_migrate = self.check_fragment(cluster, tasks, wl, current_time)
-        
-        #! 判断是否需要把大的任务先停
-        # if state:
-        #     self.defrag(cluster, tasks, current_time, state)
-        is_stop_big = self.check_stopbig(cluster, tasks, wl, current_time)
-        
-        # return monitoring_data, is_migrate, is_stop_big
-        return monitoring_data, is_migrate, is_stop_big
-
-
-    def check_fragment(self, cluster, tasks, wl, current_time):
-        # ! 根据集群状况，判断是否需要进行碎片整理， 碎片太多，占据了空闲率的一半, 并且空闲率超过阈值了，那就需要整理了
-        # state = self.get_state(cluster, tasks, current_time)
-        # if state['free_rate'] >= self.free_rate_alpha and float(state['fragment_rate']/state['free_rate']) >= self.frag_alpha:       #! 需要整理了
-        #     return True
-        # return False
-        pass
-    
-    def check_stopbig(self, cluster, tasks, wl, current_time):
-        # ! 根据集群状况，判断是否需要将较大的任务先挪出来，判断标准就是集群中的任务大量阻塞
-        # state = self.get_state(cluster, tasks, current_time)
-        # if state['num task in wl'] 
-        #     return True
-        # return False
-        pass
+        return monitoring_data
     
 
-    def get_state(self, cluster, tasks, current_time):
+    def __get_state(self, cluster, tasks, current_time):
         """
         1:集群中的信息：
             集群空闲率:空闲的卡除以总的卡数

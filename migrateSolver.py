@@ -1,15 +1,15 @@
 import pulp
 
-class MigrationSolver:
-    def __init__(self, migration_cost_weight=1.0, checkpoint_weight=1.0, load_balance_weight=1.0):
+class MigrateSolver:
+    def __init__(self, config):
         """
         :param migration_cost_weight: 迁移代价的权重
         :param checkpoint_weight: checkpoint保存时间差的权重
         :param load_balance_weight: 负载均衡的权重
         """
-        self.migration_cost_weight = migration_cost_weight
-        self.checkpoint_weight = checkpoint_weight
-        self.load_balance_weight = load_balance_weight
+        self.migration_cost_weight = config['migration_cost_weight']
+        self.checkpoint_weight = config['checkpoint_weight']
+        self.load_balance_weight = config['load_balance_weight']
 
     def normalize(self, value, min_value, max_value):
         """
