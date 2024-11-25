@@ -3,25 +3,23 @@ from waitingList import WaitingList
 from migrateSolver import MigrateSolver
 
 class Scheduler:
-    def __init__(self,schedulerConfig, waitingListConfig, migrateSolverConfig):
+    def __init__(self,schedulerConfig):
         self.schedulerConfig = schedulerConfig
-        self.waitingListConfig = waitingListConfig
-        self.migrateSolverConfig = migrateSolverConfig
+        self.waitingListConfig = schedulerConfig['waitingList']
+        self.migrateSolverConfig = schedulerConfig['migrateSolver']
 
-        self.waintingList = WaitingList(waitingListConfig)
-        self.migrateSolver = MigrateSolver(migrateSolverConfig)
-    
+        self.waintingList = WaitingList(self.waitingListConfig)
+        self.migrateSolver = MigrateSolver(self.migrateSolverConfig)
+
 
 
 class FCFS(Scheduler):
-    def __init__(self, schedulerConfig, waitingListConfig, migrateSolverConfig):
-        Scheduler.__init__(self,schedulerConfig, waitingListConfig, migrateSolverConfig)
+    def __init__(self, schedulerConfig):
+        Scheduler.__init__(self,schedulerConfig)
         self.name = self.schedulerConfig['name']
         self.timeStep = self.schedulerConfig['time_step']
 
         self.completed_tasks = []
-
-#test
 
     def __init__run(self, cluster, tasks, monitor):
         cluster.tasks = tasks

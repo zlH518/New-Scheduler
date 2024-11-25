@@ -17,8 +17,6 @@ class Executor:
         self.__init_cluster(config['cluster'])
         self.__init_tasks(config['tasks'])
         self.__init_monitor(config['monitor'])
-        self.__init_waitingList(config['waitingList'])
-        self.__init_migrateSolver(config['migrateSolver'])
 
     def __init_monitor(self, monitorConfig):
         self.monitor = monitorConfig
@@ -35,18 +33,13 @@ class Executor:
         for config in tasksConfig:
             self.tasks[config['name']] = config
 
-    def __init_waitingList(self, waitingListConfig):
-        self.waitingListConfig = waitingListConfig
-    
-    def __init_migrateSolver(self, migrateSolverConfig):
-        self.migrateSolverConfig = migrateSolverConfig
 
     def executor(self):
         for scheduler_name, schedulerConfig in self.schedulers.items():
             scheduler_class = getattr(schedulers, scheduler_name, None)
             if scheduler_class is None:
                 raise ValueError(f"Scheduler class '{scheduler_name}' not found in 'schedulers' module")
-            scheduler = scheduler_class(schedulerConfig, self.waitingListConfig, self.migrateSolverConfig)
+            scheduler = scheduler_class(schedulerConfig)
             for task_name, config in self.tasks.items():
                 cluster = Cluster(self.cluster)  
                 tasks = Tasks(config)
