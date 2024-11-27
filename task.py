@@ -19,7 +19,6 @@ class Task:
         self.pre_queue_time = pre_queue_time
         self.node_num = node_num
         self.migration_times = 0
-        self.migration_time = 0
         self.checkpoint_time = 0
         self.node_id = []
         self.status = "UNARRIVAL"

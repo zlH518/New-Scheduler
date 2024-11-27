@@ -24,8 +24,7 @@ class Monitor:
 
         logging.info(f"Monitoring data saved to {self.save_path}")
         return monitoring_data
-    
-
+        
     def __get_state(self, cluster, tasks, current_time):
         """
         1:集群中的信息：
