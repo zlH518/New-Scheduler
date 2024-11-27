@@ -1,19 +1,10 @@
 import logging
-from waitingList import WaitingList
-from migrateSolver import MigrateSolver
 
-class Scheduler:
-    def __init__(self,schedulerConfig):
-        self.schedulerConfig = schedulerConfig
-        self.waitingListConfig = schedulerConfig['waitingList']
-        self.migrateSolverConfig = schedulerConfig['migrateSolver']
-
-        self.waintingList = WaitingList(self.waitingListConfig)
-        self.migrateSolver = MigrateSolver(self.migrateSolverConfig)
+from .baseSchedulers import Scheduler
 
 
 
-class FCFS(Scheduler):
+class SMF(Scheduler):
     def __init__(self, schedulerConfig):
         Scheduler.__init__(self,schedulerConfig)
         self.name = self.schedulerConfig['name']
@@ -108,5 +99,3 @@ class FCFS(Scheduler):
 
             #7.时间递增    
             self.__time_add()
-        
-        

@@ -1,11 +1,15 @@
-import schedulers
-from cluster import Cluster
-from task import Tasks
-from monitor import Monitor
 import os
 import yaml
 from datetime import datetime
 import logging
+import importlib
+
+
+from cluster import Cluster
+from task import Tasks
+from monitor import Monitor
+import schedulers
+
 
 class Executor:
     def __init__(self, config):
@@ -36,6 +40,7 @@ class Executor:
 
     def executor(self):
         for scheduler_name, schedulerConfig in self.schedulers.items():
+            schedulers = importlib.import_module(f'schedulers.{scheduler_name}')
             scheduler_class = getattr(schedulers, scheduler_name, None)
             if scheduler_class is None:
                 raise ValueError(f"Scheduler class '{scheduler_name}' not found in 'schedulers' module")
