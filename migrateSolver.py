@@ -1,4 +1,9 @@
 import pulp
+import random
+import numpy as np
+import math
+
+
 
 class MigrateSolver:
     def __init__(self, config):
@@ -7,9 +12,7 @@ class MigrateSolver:
         :param checkpoint_weight: checkpoint保存时间差的权重
         :param load_balance_weight: 负载均衡的权重
         """
-        self.migration_cost_weight = config['migration_cost_weight']
-        self.checkpoint_weight = config['checkpoint_weight']
-        self.load_balance_weight = config['load_balance_weight']
+        self.config = config
 
     def normalize(self, value, min_value, max_value):
         """
@@ -22,30 +25,28 @@ class MigrateSolver:
             return (value - min_value) / (max_value - min_value)
         return 0
 
-    def solver(self, cluster, tasks, current_time):
+    def solver(self, nodes, tasks, current_time):
         """
         :param cluster: 集群对象，包含节点信息（实例数据）
         :param tasks: 任务列表（实例数据）
         :param current_time: 当前时间，用于计算任务剩余时间和checkpoint时间
         :return: 迁移方案
         """
-        # 创建线性规划问题
         prob = pulp.LpProblem("TaskMigration", pulp.LpMinimize)
 
-        # 创建变量，x[i][j] 表示任务 i 是否迁移到节点 j
-        x = pulp.LpVariable.dicts("x", ((task.id, node.id) for task in tasks for node in cluster.nodes),
-                                  cat='Binary')
-
-        # 目标函数项：迁移代价，节点负载均衡，checkpoint时间差
         migration_costs = []
         load_balances = []
         checkpoint_gaps = []
 
         for task in tasks:
-            for source_node in cluster.nodes:
-                for target_node in cluster.nodes:
-                    migration_cost = self.calculate_migration_cost(task, source_node, target_node)
-                    load_balance = self.calculate_load_balance(task, source_node, target_node)
+            for source_node in nodes:
+                for target_node in nodes:
+                    if source_node.Id == target_node.Id:
+                        continue
+                    x = pulp.LpVariable(f"x_{task.task_id}_{target_node.Id}", cat='Binary')
+
+                    migration_cost = self.calculate_migration_cost(task, source_node, target_node, current_time)
+                    load_balance = self.calculate_load_balance(task, target_node)
                     checkpoint_gap = self.calculate_checkpoint_gap(task, current_time)
 
                     migration_costs.append(migration_cost)
@@ -62,21 +63,21 @@ class MigrateSolver:
 
         # 归一化目标函数的每一项，并加权
         prob += pulp.lpSum([
-            self.migration_cost_weight * self.normalize(self.calculate_migration_cost(task, source_node, target_node), 
+            self.config['migration_cost_weight'] * self.normalize(self.calculate_migration_cost(task, source_node, target_node, current_time), 
                                                        min_migration_cost, max_migration_cost)
             * x[task.id, target_node.id]
             for task in tasks for source_node in cluster.nodes for target_node in cluster.nodes
         ])
 
         prob += pulp.lpSum([
-            self.load_balance_weight * self.normalize(self.calculate_load_balance(task, source_node, target_node),
+            self.config['load_balance_weight'] * self.normalize(self.calculate_load_balance(task, source_node, target_node),
                                                       min_load_balance, max_load_balance)
             * x[task.id, target_node.id]
             for task in tasks for source_node in cluster.nodes for target_node in cluster.nodes
         ])
 
         prob += pulp.lpSum([
-            self.checkpoint_weight * self.normalize(self.calculate_checkpoint_gap(task, current_time),
+            self.config['checkpoint_weight'] * self.normalize(self.calculate_checkpoint_gap(task, current_time),
                                                     min_checkpoint_gap, max_checkpoint_gap)
             * x[task.id, target_node.id]
             for task in tasks for source_node in cluster.nodes for target_node in cluster.nodes
@@ -100,6 +101,13 @@ class MigrateSolver:
         for task in tasks:
             prob += pulp.lpSum([x[task.id, target_node.id] for target_node in cluster.nodes]) == 1
 
+        # 约束5：源节点和目标节点不能相同
+        for task in tasks:
+            for source_node in cluster.nodes:
+                for target_node in cluster.nodes:
+                    if source_node == target_node:  # 添加新的约束
+                        prob += x[task.id, source_node.id] == 0  # 禁止源节点和目标节点相同
+
         # 求解优化问题
         prob.solve()
 
@@ -113,37 +121,52 @@ class MigrateSolver:
 
         return migration_plan
 
-    def calculate_migration_cost(self, task, source_node, target_node):
+    def calculate_migration_cost(self, task, source_node, target_node, current_time):
         """
-        计算迁移代价（示例）
-        
+        计算迁移代价
         :param task: 任务对象
         :param source_node: 源节点
         :param target_node: 目标节点
         :return: 迁移代价
-        """
-        # 这里返回任务本身的迁移代价，具体的代价计算根据实际情况进行调整
-        return task.migration_cost
 
-    def calculate_load_balance(self, task, source_node, target_node):
+        通信代价根据目标节点和源节点之间的Id进行hash运算当作随机数种子，然后随机0.5~1.5
+        cost的比例根据任务的剩余gpu_time进行计算
         """
-        计算负载均衡（示例）
+        task_left_gpu_time = task.cards * (current_time - task.real_start_time)
+        seed = hash((source_node.Id, target_node.Id)) 
+        random.seed(seed)
+        commucation_rate = random.uniform(0.5, 1.5)
+        cost = self.config['migration_cost_rate'] * task_left_gpu_time * commucation_rate
+        return cost
+
+    def calculate_load_balance(self, task, target_node):
+        """
+        计算迁移适配度
+        这里首先是任务与目标节点的适配程度，如果任务的卡数大于目标节点的空闲卡，那么直接不适配，返回无穷负数
+        如果任务的卡数小于目标节点的空闲卡，如果任务的卡数和目标节点的空闲卡距离越小，那么适配值越大，
+        以上条件都相等的话，如果任务本身的卡数越大，那么适配度越小(尽量不移动卡数比较大的任务)
         
         :param task: 任务对象
         :param source_node: 源节点
         :param target_node: 目标节点
         :return: 负载均衡值
         """
-        # 负载均衡计算逻辑，尽量使目标节点填满，源节点尽量空闲
-        return abs(target_node.cards - sum(t.cards for t in target_node.task_list))
+        if task.cards > target_node.cards:
+            return -math.inf  
+        card_difference = target_node.cards - task.cards
+        adaptation_score = 1 / (card_difference + 1)  
+        task_card_penalty = 1 / task.cards
+        load_balance_value = adaptation_score + task_card_penalty
+        return load_balance_value
+
 
     def calculate_checkpoint_gap(self, task, current_time):
         """
-        计算任务距离上次 checkpoint 保存的时间（示例）
-        
+        计算任务距离上次 checkpoint 保存的时间长短
         :param task: 任务对象
         :param current_time: 当前时间
         :return: 距离上次 checkpoint 保存的时间
+        
+        这里每个任务的checkpointtime是按照最佳ck时间来计算的来模拟的
         """
-        return current_time - task.last_checkpoint_time
-
+        

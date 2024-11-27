@@ -4,11 +4,12 @@ from .baseSchedulers import Scheduler
 
 
 
-class FCFS(Scheduler):
+class FCFS_Migrate(Scheduler):
     def __init__(self, schedulerConfig):
         Scheduler.__init__(self,schedulerConfig)
         self.name = self.schedulerConfig['name']
         self.timeStep = self.schedulerConfig['time_step']
+        self.fragment_alpha_rate = self.schedulerConfig['fragment_alpha_rate']
 
         self.completed_tasks = []
 
@@ -63,10 +64,18 @@ class FCFS(Scheduler):
     def __update_info(self,cluster, tasks):
         self.info = self.monitor.monitor(cluster, tasks, self.currentTime)
 
-    def __migrate(self, cluster):
-        pass
-
+    def __migrate(self, cluster, tasks):
+        allow_migrate_nodes = list(filter(lambda node: node.cards !=0 and node.cards != 8, cluster.nodes))
+        allow_migrate_tasks = []
+        for node in allow_migrate_nodes:
+            for task in node.tasks:
+                allow_migrate_tasks.append(task)
+        if self.info['fragment_rate'] / self.info['free_rate'] > self.fragment_alpha_rate:
+            ans = self.migrateSolver.solver(allow_migrate_nodes, allow_migrate_tasks, self.currentTime)
+        else:
+            return False
     def __adjust(self, cluster):
+        #TODO:根据当前的集群状况来决定是否调整，调整目前仅包括停止大的任务
         pass
 
     def __time_add(self):
@@ -90,7 +99,7 @@ class FCFS(Scheduler):
             self.__update_info(cluster, tasks)
 
             #5.根据当前集群的各种状况，来决定是否启动迁移
-            self.__migrate(cluster)
+            self.__migrate(cluster, tasks)
 
             #6.根据当前集群的各种状况，来决定是否启动调整
             self.__adjust(cluster)

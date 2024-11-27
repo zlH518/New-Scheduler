@@ -32,19 +32,30 @@ schedulers:
   #     migration_cost_weight: 1.0    #迁移代价的影响权重
   #     checkpoint_weight: 1.0     #有无checkpoint的影响权重
   #     load_balance_weight: 1.0    #负载是否均衡的影响权重
-  - name: "SMF"        #小卡任务优先的baseline
+  # - name: "SMF"        #小卡任务优先的baseline
+  #   time_step: 10000
+  #   waitingList:
+  #     wl_priority: "cards_small_first"    #cards_big_first、cards_small_first、first come first sever、last come last sever、highters response reatio next、dynamic、short_time_first、long_time_first、lottery            
+  #     wl_alpha: 100       #选择高响应比的时候需要设置的响应系数     
+  #     # wl_migreate_priority: "big first"   #small first、wait list、best fit piece first  
+  #     wl_free_max_rate: 0.8   #选择动态的时候需要设置wl转化的集群空闲率最高阈值
+  #     wl_free_min_rate: 0.1   #选择动态的时候需要设置wl转化的集群空闲率最低阈值
+  #     wl_tasks_num: 500  #选择动态的时候需要设置wl转化的wl任务数量阈值\
+  #   migrateSolver:
+  #     migration_cost_weight: 1.0    #迁移代价的影响权重
+  #     checkpoint_weight: 1.0     #有无checkpoint的影响权重
+  #     load_balance_weight: 1.0    #负载是否均衡的影响权重
+  - name: "FCFS_Migrate"        #带迁移的策略
     time_step: 10000
+    fragment_alpha_rate: 0.3      
     waitingList:
       wl_priority: "first come first sever"    #cards_big_first、cards_small_first、first come first sever、last come last sever、highters response reatio next、dynamic、short_time_first、long_time_first、lottery            
-      wl_alpha: 100       #选择高响应比的时候需要设置的响应系数     
-      # wl_migreate_priority: "big first"   #small first、wait list、best fit piece first  
-      wl_free_max_rate: 0.8   #选择动态的时候需要设置wl转化的集群空闲率最高阈值
-      wl_free_min_rate: 0.1   #选择动态的时候需要设置wl转化的集群空闲率最低阈值
-      wl_tasks_num: 500  #选择动态的时候需要设置wl转化的wl任务数量阈值\
     migrateSolver:
       migration_cost_weight: 1.0    #迁移代价的影响权重
       checkpoint_weight: 1.0     #有无checkpoint的影响权重
-      load_balance_weight: 1.0    #负载是否均衡的影响权重
+      load_balance_weight: 1.0    #迁移的任务与目标节点适配程度的影响权重
+      migration_cost_rate: 0.2    #迁移代价相比任务的剩余gpu_time的比例
+    
 logger:
   log_file: "logs/cluster_simulation.log"    
   log_level: "INFO"                          #DEBUG, INFO, WARNING, ERROR, CRITICAL
