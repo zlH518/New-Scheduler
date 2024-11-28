@@ -65,7 +65,7 @@ class FCFS_Migrate(Scheduler):
         return task_from_wl
 
     def __update_info(self,cluster, tasks):
-        self.info = self.monitor.monitor(cluster, tasks, self.currentTime)
+        self.info = self.monitor.monitor(cluster, tasks, self.currentTime, self.timeStep)
 
     def __migrate(self, cluster, tasks):
         if self.info['free_rate'] == 0.0:
