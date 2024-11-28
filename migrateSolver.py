@@ -80,11 +80,10 @@ class MigrateSolver:
             if remaining_time > (2 / 3) * task.duration_time:
                 prob += pulp.lpSum([x[task.task_id, source_node.Id, target_node.Id] for source_node in nodes for target_node in nodes if source_node.Id != target_node.Id]) >= 1
 
-        # 求解优化问题
+        # 求解
         prob.solve()
 
-        # 输出迁移方案，要求输入source_node和target_node的id和迁移的任务的id
-        # 输出迁移方案
+        # 输出迁移方案，source_node和target_node的id和迁移的任务的id
         for task in tasks:
             for source_node in nodes:
                 for target_node in nodes:
