@@ -49,7 +49,7 @@ class Executor:
                 cluster = Cluster(self.cluster)  
                 tasks = Tasks(config)
                 monitorConfig = self.monitor
-                monitorConfig["save_path"] = os.path.join(monitorConfig['base_path'],scheduler_name + f'_{self.config['timestamp']}.csv')
+                monitorConfig["save_path"] = os.path.join(monitorConfig['base_path'],scheduler_name + f"_{self.config['timestamp']}.csv")
                 monitor = Monitor(self.monitor)
                 scheduler.run(cluster, tasks, monitor)
                 self.__save_config()
@@ -63,7 +63,7 @@ class Executor:
             os.makedirs(self.config['config']['save_path'])
 
         #// !这里改成self.timestamp，保持配置文件和监控的信息文件名字一致
-        save_path = os.path.join(self.config['config']['save_path'], f'config_{self.config['timestamp']}.yaml')
+        save_path = os.path.join(self.config['config']['save_path'], f"config_{self.config['timestamp']}.yaml")
 
         with open(save_path, 'w') as yaml_file:
             yaml.dump(self.config, yaml_file, default_flow_style=False, allow_unicode=True)

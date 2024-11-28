@@ -110,7 +110,7 @@ class Tasks:
             data['scheduling_time'] = data['start_time'] - data['create_time']
             data = data[(data['create_time'] >= 0) & (data['start_time'] >= 0) & (data['duration_time'] > 0)]
             data.to_csv(self.config['useful_data_path'], index=False)
-            logging.info(f'useful data is saved in {self.config['useful_data_path']}')
+            logging.info(f"useful data is saved in {self.config['useful_data_path']}")
       
         elif self.config['type'] == 'multi':
             data = pd.read_csv(self.config['merge_data_path'],usecols=['metadata.create_time', 'status.duration', 'status.start_time', 'spec.resource.flavor_id', 'spec.resource.node_count'], low_memory=False)
@@ -139,7 +139,7 @@ class Tasks:
             data['scheduling_time'] = data['start_time'] - data['create_time']
             data = data[(data['create_time'] >= 0) & (data['start_time'] >= 0) & (data['duration_time'] > 0)]
             data.to_csv(self.config['useful_data_path'], index=False)
-            logging.info(f'useful data is saved in {self.config['useful_data_path']}')
+            logging.info(f"useful data is saved in {self.config['useful_data_path']}")
 
 
     def read_and_create_Tasks(self):

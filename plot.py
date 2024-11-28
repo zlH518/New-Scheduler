@@ -9,7 +9,7 @@ class Plot:
         algorithm_paths = [] 
         for scheduler in config['schedulers']:
             for task in config['tasks']:
-                algorithm_paths.append((scheduler['name'], os.path.join(config['monitor']['base_path'], scheduler['name'] + f'_{config['timestamp']}.csv')))
+                algorithm_paths.append((scheduler['name'], os.path.join(config['monitor']['base_path'], scheduler['name'] + f"_{config['timestamp']}.csv")))
 
         sns.set(style="whitegrid")
         fig, ax = plt.subplots(figsize=(10, 6))
