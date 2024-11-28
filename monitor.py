@@ -11,7 +11,7 @@ class Monitor:
 
     def monitor(self, cluster, tasks, current_time):
         monitoring_data = self.__get_state(cluster, tasks, current_time)
-        print(f"current_time:{current_time}, free_rate:{monitoring_data['free_rate']}, task num in wl:{monitoring_data['num task in wl']}, unused_nodes:{monitoring_data['unused_node_num']}, fragment_rate:{monitoring_data['fragment_rate']}")
+        # print(f"current_time:{current_time}, free_rate:{monitoring_data['free_rate']}, task num in wl:{monitoring_data['num task in wl']}, unused_nodes:{monitoring_data['unused_node_num']}, fragment_rate:{monitoring_data['fragment_rate']}")
 
         if os.path.exists(self.save_path):
             df_existing = pd.read_csv(self.save_path)

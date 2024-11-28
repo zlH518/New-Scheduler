@@ -30,11 +30,7 @@ class Task:
         Task.TaskId += 1
 
     def __repr__(self):
-        return (f"Task(task_id={self.task_id}, create_time={self.create_time}, "
-                f"start_time={self.start_time}, cards={self.cards}, "
-                f"duration_time={self.duration_time}, gpu_time={self.gpu_time}\n")
-
-
+        return (f"Task(task_id={self.task_id}, cards={self.cards}, node_num={self.node_num})")
 
 
 
