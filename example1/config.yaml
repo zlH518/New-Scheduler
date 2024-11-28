@@ -48,6 +48,7 @@ schedulers:
   - name: "FCFS_Migrate"        #带迁移的策略
     time_step: 10000
     fragment_alpha_rate: 0.3      
+    migrate_times: 1              #每个任务允许迁移的最大次数
     waitingList:
       wl_priority: "first come first sever"    #cards_big_first、cards_small_first、first come first sever、last come last sever、highters response reatio next、dynamic、short_time_first、long_time_first、lottery            
     migrateSolver:

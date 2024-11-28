@@ -65,13 +65,14 @@ class FCFS_Migrate(Scheduler):
         self.info = self.monitor.monitor(cluster, tasks, self.currentTime)
 
     def __migrate(self, cluster, tasks):
-        allow_migrate_nodes = list(filter(lambda node: node.cards !=0 and node.cards != 8, cluster.nodes))
-        allow_migrate_tasks = []
-        for node in allow_migrate_nodes:
-            for task in node.tasks:
-                allow_migrate_tasks.append(task)
         if self.info['fragment_rate'] / self.info['free_rate'] > self.fragment_alpha_rate:
-            ans = self.migrateSolver.solver(allow_migrate_nodes, allow_migrate_tasks, self.currentTime)
+            allow_migrate_nodes = list(filter(lambda node: node.cards !=0 and node.cards != 8, cluster.nodes))
+            allow_migrate_tasks = []
+            for node in allow_migrate_nodes:
+                for task in node.tasks:
+                    if task.migration_times < self.schedulerConfig['migrate_time']:
+                        allow_migrate_tasks.append(task)
+            ans = self.migrateSolver.solver(allow_migrate_nodes, allow_migrate_tasks, self.currentTime)     #! 获取迁移求解器的答案，答案为source_node和target_node的编号和任务的id
         else:
             return False
     def __adjust(self, cluster):
