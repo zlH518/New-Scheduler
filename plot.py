@@ -17,9 +17,9 @@ class Plot:
             df = pd.read_csv(data_path)
         
         ax.plot(df['timestamp'], df['free_rate'], label=f'Free Rate - {algorithm_name}')
-        ax.plot(df['timestamp'], df['throughput'], label=f'Throughput - {algorithm_name}')
+        ax.plot(df['timestamp'], df['throughput_pre_three_timestep'], label=f'Throughput - {algorithm_name}')
         ax.plot(df['timestamp'], df['fragment_rate'], label=f'Fragment Rate - {algorithm_name}')
-        ax.plot(df['timestamp'], df['avg_waiting_time'], label=f'Avg Waiting Time - {algorithm_name}')
+        ax.plot(df['timestamp'], df['avg_waiting_time_pre_three_timestep'], label=f'Avg Waiting Time - {algorithm_name}')
         
         ax.set_xlabel('Timestamp')
         ax.set_ylabel('Metrics')
