@@ -61,7 +61,7 @@ class FCFS(Scheduler):
                         self.waintingList.delete_task(task.task_id)
 
     def __update_info(self,cluster, tasks):
-        self.info = self.monitor.monitor(cluster, tasks, self.currentTime)
+        self.info = self.monitor.monitor(cluster, tasks, self.currentTime, self.timeStep)
 
     def __migrate(self, cluster):
         pass

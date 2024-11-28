@@ -61,7 +61,7 @@ class SMF(Scheduler):
                         self.waintingList.delete_task(task.task_id)
 
     def __update_info(self,cluster, tasks):
-        self.info = self.monitor.monitor(cluster, tasks, self.currentTime)
+        self.info = self.monitor.monitor(cluster, tasks, self.currentTime, self.timeStep)
 
     def __migrate(self, cluster):
         #TODO:根据当前策略的标准来决定是否迁移

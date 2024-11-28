@@ -34,6 +34,7 @@ class MigrateSolver:
         """
         prob = pulp.LpProblem("TaskMigration", pulp.LpMinimize)
 
+        x = {}
         migration_costs = []
         load_balances = []
         checkpoint_gaps = []
@@ -43,7 +44,7 @@ class MigrateSolver:
                 for target_node in nodes:
                     if source_node.Id == target_node.Id:
                         continue
-                    x = pulp.LpVariable(f"x_{task.task_id}_{target_node.Id}", cat='Binary')
+                    x[task.task_id, source_node.Id, target_node.Id] = pulp.LpVariable(f"x_{task.task_id}_{source_node.Id}_{target_node.Id}", 0, 1, pulp.LpInteger)
 
                     migration_cost = self.calculate_migration_cost(task, source_node, target_node, current_time)
                     load_balance = self.calculate_load_balance(task, target_node)
@@ -53,7 +54,6 @@ class MigrateSolver:
                     load_balances.append(load_balance)
                     checkpoint_gaps.append(checkpoint_gap)
 
-        # 获取归一化后的最大值和最小值
         max_migration_cost = max(migration_costs)
         min_migration_cost = min(migration_costs)
         max_load_balance = max(load_balances)
@@ -61,65 +61,35 @@ class MigrateSolver:
         max_checkpoint_gap = max(checkpoint_gaps)
         min_checkpoint_gap = min(checkpoint_gaps)
 
-        # 归一化目标函数的每一项，并加权
-        prob += pulp.lpSum([
-            self.config['migration_cost_weight'] * self.normalize(self.calculate_migration_cost(task, source_node, target_node, current_time), 
-                                                       min_migration_cost, max_migration_cost)
-            * x[task.id, target_node.id]
-            for task in tasks for source_node in cluster.nodes for target_node in cluster.nodes
-        ])
+        prob += pulp.lpSum([self.config['migration_cost_weight'] * x[task.task_id, source_node.Id, target_node.Id] * self.normalize(migration_cost, min_migration_cost, max_migration_cost) +
+                            self.config['load_balance_weight'] * x[task.task_id, source_node.Id, target_node.Id] * self.normalize(load_balance, min_load_balance, max_load_balance) +
+                            self.config['checkpoint_weight'] * x[task.task_id, source_node.Id, target_node.Id] * self.normalize(checkpoint_gap, min_checkpoint_gap, max_checkpoint_gap)
+                            for task in tasks for source_node in nodes for target_node in nodes if source_node.Id != target_node.Id])
 
-        prob += pulp.lpSum([
-            self.config['load_balance_weight'] * self.normalize(self.calculate_load_balance(task, source_node, target_node),
-                                                      min_load_balance, max_load_balance)
-            * x[task.id, target_node.id]
-            for task in tasks for source_node in cluster.nodes for target_node in cluster.nodes
-        ])
-
-        prob += pulp.lpSum([
-            self.config['checkpoint_weight'] * self.normalize(self.calculate_checkpoint_gap(task, current_time),
-                                                    min_checkpoint_gap, max_checkpoint_gap)
-            * x[task.id, target_node.id]
-            for task in tasks for source_node in cluster.nodes for target_node in cluster.nodes
-        ])
-
-        # 约束1：每个任务只能迁移一次
+        # 约束1：只有一个任务迁移
         for task in tasks:
-            prob += pulp.lpSum([x[task.id, target_node.id] for target_node in cluster.nodes]) <= 1
+            prob += pulp.lpSum([x[task.task_id, source_node.Id, target_node.Id] for source_node in nodes for target_node in nodes if source_node.Id != target_node.Id]) <= 1
 
-        # 约束2：任务剩余完成时间大于整体完成时间的 2/3
+        # 约束2：所有任务中只能有一个任务被迁移
+        prob += pulp.lpSum([x[task.task_id, source_node.Id, target_node.Id] for task in tasks for source_node in nodes for target_node in nodes if source_node.Id != target_node.Id]) == 1
+
+
+        # 约束3：选择迁移的任务的剩余完成时间大于整体完成时间的 2/3
         for task in tasks:
-            remaining_time = task.end_time - current_time
-            total_time = task.end_time - task.start_time
-            prob += remaining_time >= (2 / 3) * total_time
+            remaining_time = (task.duration_time - (current_time - task.real_start_time))
+            if remaining_time > (2 / 3) * task.duration_time:
+                prob += pulp.lpSum([x[task.task_id, source_node.Id, target_node.Id] for source_node in nodes for target_node in nodes if source_node.Id != target_node.Id]) >= 1
 
-        # 约束3：节点负载约束：迁移后，源节点尽量保持空闲，目标节点尽量被占满
-        for target_node in cluster.nodes:
-            prob += pulp.lpSum([task.cards * x[task.id, target_node.id] for task in tasks]) <= target_node.cards
-
-        # 约束4：每个任务从未迁移过（任务迁移计数为0）
-        for task in tasks:
-            prob += pulp.lpSum([x[task.id, target_node.id] for target_node in cluster.nodes]) == 1
-
-        # 约束5：源节点和目标节点不能相同
-        for task in tasks:
-            for source_node in cluster.nodes:
-                for target_node in cluster.nodes:
-                    if source_node == target_node:  # 添加新的约束
-                        prob += x[task.id, source_node.id] == 0  # 禁止源节点和目标节点相同
-
-        # 求解优化问题
+        # 求解
         prob.solve()
 
-        # 输出迁移方案
-        migration_plan = []
+        # 输出迁移方案，source_node和target_node的id和迁移的任务的id
         for task in tasks:
-            for target_node in cluster.nodes:
-                if pulp.value(x[task.id, target_node.id]) == 1:
-                    source_node = next(node for node in cluster.nodes if task in node.task_list)
-                    migration_plan.append((task, source_node, target_node))
-
-        return migration_plan
+            for source_node in nodes:
+                for target_node in nodes:
+                    if source_node.Id != target_node.Id and x[task.task_id, source_node.Id, target_node.Id].varValue == 1.0:
+                        print(f"迁移任务{task.task_id}：源节点{source_node.Id} -> 目标节点{target_node.Id}")
+                        return source_node.Id, target_node.Id, task.task_id
 
     def calculate_migration_cost(self, task, source_node, target_node, current_time):
         """
@@ -169,4 +139,5 @@ class MigrateSolver:
         
         这里每个任务的checkpointtime是按照最佳ck时间来计算的来模拟的
         """
+        return 100
         
