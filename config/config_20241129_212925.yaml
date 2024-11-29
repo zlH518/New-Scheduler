@@ -1,7 +1,7 @@
 cluster:
   cards_per_node: 8
   name: cluster
-  node_num: 2000
+  node_num: 3000
   priority: best fit
 config:
   save_path: config
@@ -15,11 +15,11 @@ monitor:
   frag_alpha: 0.2
   free_rate_alpha: 0.008
   name: monitor
-  save_path: monitor\FCFS_Migrate_20241128_202008.csv
+  save_path: monitor\FCFS_Migrate_20241129_212925.csv
 plotter:
   save_path: figure
 schedulers:
-- fragment_alpha_rate: 0.3
+- fragment_alpha_rate: 0.005
   migrateSolver:
     checkpoint_weight: 1.0
     load_balance_weight: 1.0
@@ -29,7 +29,8 @@ schedulers:
   name: FCFS_Migrate
   time_step: 3600
   waitingList:
-    wl_priority: short_time_first
+    lottery_max_rate: 0.5
+    wl_priority: first come first sever
 tasks:
 - merge_data_path: data/snt9b/merge_data.csv
   name: snt9b
@@ -37,4 +38,4 @@ tasks:
   save_csv_path: data/snt9b/csv
   type: multi
   useful_data_path: data/snt9b/useful_data.csv
-timestamp: '20241128_202008'
+timestamp: '20241129_212925'
