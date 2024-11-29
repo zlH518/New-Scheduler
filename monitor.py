@@ -9,8 +9,9 @@ class Monitor:
         self.frag_alpha = monitorConfig['frag_alpha']
         self.free_rate_alpha = monitorConfig['free_rate_alpha']
 
-    def monitor(self, cluster, tasks, current_time, timestep):   
+    def monitor(self, cluster, tasks, current_time, timestep, arrival_task_num):   
         monitoring_data = self.__get_state(cluster, tasks, current_time, timestep)
+        monitoring_data['arrival_task_num'] = arrival_task_num
         # print(f"current_time:{current_time}, free_rate:{monitoring_data['free_rate']}, task num in wl:{monitoring_data['num task in wl']}, unused_nodes:{monitoring_data['unused_node_num']}, fragment_rate:{monitoring_data['fragment_rate']}")
 
         if os.path.exists(self.save_path):
@@ -37,7 +38,7 @@ class Monitor:
             任务的平均完成时间:只包括已经完成的任务，在过去三个时间片中
             每个任务的迁移次数:
         """
-        begin_time = current_time - timestep * 3   
+        begin_time = current_time - timestep * 24 
         total_cards = 0
         free_cards = 0
         pieces_cards = 0
@@ -72,13 +73,13 @@ class Monitor:
         fragment_rate = float(pieces_cards / float(len(used_nodes)*8)) if len(used_nodes) != 0 else 0.0
 
         #2.1 在过去三个时间片内的任务的平均等待时间
-        avg_waiting_time = float(sum(current_time - task.create_time for task in wait_tasks) + \
-                                 sum(task.real_queue_time for task in completed_tasks) + \
-                                 sum(task.real_queue_time for task in running_tasks)) \
+        avg_waiting_time = float(sum(current_time - task.create_time for task in delta_wait_tasks) + \
+                                 sum(task.real_queue_time for task in delta_completed_tasks) + \
+                                 sum(task.real_queue_time for task in delta_running_tasks)) \
                             / float((len(delta_wait_tasks) + len(delta_completed_tasks) + len(delta_running_tasks))) if len(delta_wait_tasks) + len(delta_completed_tasks) + len(delta_running_tasks)!= 0 else 0.0
 
         # 2.2 在过去的三个时间片内任务的平均完成时间
-        avg_completion_time = float(sum(task.real_end_time - task.create_time for task in completed_tasks) \
+        avg_completion_time = float(sum(task.real_end_time - task.create_time for task in delta_completed_tasks) \
                             / float(len(delta_completed_tasks))) if len(delta_completed_tasks) != 0 else 0.0
 
         # 2.3 任务的平均迁移次数

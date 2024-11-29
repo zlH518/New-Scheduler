@@ -1,4 +1,5 @@
 import random
+import math
 ##test pr on develop
 
 
@@ -65,23 +66,44 @@ class WaitingList:
             else:
                 tasks = sorted(self.wl, key=lambda task: task.duration_time, reverse=False)       #默认情况，短任务优先
                 return tasks[0]
-        elif self.priority == "lottery":
-            tickets = []
-            total_tickets = 0
+        elif self.priority == "lottery":        #彩票抽奖
+            ##首先检查所有的等待时间，如果等待时间已经到达了阈值(等待时间除以任务的运行时间的比值)，那么就按照先到先服务提高优先级，如果没有则继续按照彩票的方式抽奖，彩票数=等待时间/总时间 * 100
+            # 先检查所有任务的等待时间是否都到达了优先级最高的情况
+            tasks = list(filter(lambda task: (current_time - task.create_time)/task.duration_time >= self.config['lottery_max_rate'], self.wl))
+            if len(tasks) != 0:     
+                tasks = sorted(tasks, key=lambda task: task.create_time, reverse=False)
+                return tasks[0]
+            else:
+                tickets = []
+                total_tickets = 0
+                for task in self.wl:
+                    waiting_time = max(current_time - task.create_time, 1)
+                    task_duration = max(task.duration_time, 1)
+                    task.tickets = math.ceil((waiting_time / task_duration ) * 100)
+                    tickets.append(task.tickets)
+                    total_tickets += task.tickets
+                draw = random.randint(1, total_tickets)
+                cumulative_tickets = 0
+                for task, ticket_count in zip(self.wl, tickets):
+                    cumulative_tickets += ticket_count
+                    if draw <= cumulative_tickets:
+                        return task
+        elif self.priority == "multi_queue":
+            #首先按照饥饿度分层，每10%为一个队列，然后队列中按照先到先服务的原则排序，饥饿度=(current_time - task.create_time) / task.duration_time, 最后返回优先级最高的任务
+            queues = [[] for _ in range(10)]  
+
             for task in self.wl:
-                waiting_time = current_time - task.create_time
-                task_duration = max(task.duration_time, 1)
-                task.tickets = int((waiting_time / task_duration ) * 100)
-                tickets.append(task.tickets)
-                total_tickets += task.tickets
-            draw = random.randint(1, total_tickets)
-            cumulative_tickets = 0
-            for task, ticket_count in zip(self.wl, tickets):
-                cumulative_tickets += ticket_count
-                if draw <= cumulative_tickets:
-                    return task
-        else:
-            raise ValueError(f'invalid priority setting: {self.priority} in waiting list')
+                waiting_time = current_time - task.create_time  
+                task_duration = max(task.duration_time, 1)  
+                starvation = (waiting_time / task_duration) * 100  
+                queue_index = min(int(starvation // 10), 9)  
+                queues[queue_index].append(task)
+
+            priority_tasks = []
+            for queue in reversed(queues):
+                priority_tasks.extend(sorted(queue, key=lambda task: task.create_time, reverse=False))
+            return priority_tasks[0]              
+
 
     def delete_task(self, task_id):
         self.wl = list(filter(lambda task: task.task_id != task_id, self.wl))

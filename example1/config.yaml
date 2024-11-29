@@ -1,6 +1,6 @@
 cluster:
   name: "cluster"
-  node_num: 2000
+  node_num: 3000
   cards_per_node: 8
   priority: "best fit"    #best fit、big first、best similar
 tasks:
@@ -46,11 +46,12 @@ schedulers:
   #     checkpoint_weight: 1.0     #有无checkpoint的影响权重
   #     load_balance_weight: 1.0    #负载是否均衡的影响权重
   - name: "FCFS_Migrate"        #带迁移的策略
-    time_step: 3600
-    fragment_alpha_rate: 0.3      
+    time_step: 900
+    fragment_alpha_rate: 0.005      
     migrate_times: 1              #每个任务允许迁移的最大次数
     waitingList:
-      wl_priority: "short_time_first"    #cards_big_first、cards_small_first、first come first sever、last come last sever、highters response reatio next、dynamic、short_time_first、long_time_first、lottery            
+      wl_priority: "first come first sever"    #cards_big_first、cards_small_first、first come first sever、last come last sever、highters response reatio next、dynamic、short_time_first、long_time_first、lottery、multi_queue  
+      lottery_max_rate: 0.5         
     migrateSolver:
       migration_cost_weight: 1.0    #迁移代价的影响权重
       checkpoint_weight: 1.0     #有无checkpoint的影响权重

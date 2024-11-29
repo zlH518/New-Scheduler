@@ -32,7 +32,8 @@ class FCFS_Migrate(Scheduler):
             'avg_completion_time': 0.0,
             'avg_migration_times': 0.0,
             'unused_node_num': 500,
-            'num task in wl': 0
+            'num task in wl': 0,
+            'arrival_task_num': 0
         }
 
     def __release_tasks(self, cluster):
@@ -41,8 +42,10 @@ class FCFS_Migrate(Scheduler):
     
     def __new_tasks_arrival(self, tasks):
         if self.currentTaskIndex < self.lastTaskIndex:
+            self.arrival_task_num = 0
             while tasks[self.currentTaskIndex].create_time <= self.currentTime:
                 # print(f"{tasks[index].task_id} task is in wl")
+                self.arrival_task_num = self.arrival_task_num + 1
                 self.waintingList.add_task(tasks[self.currentTaskIndex])
                 self.currentTaskIndex += 1
                 if self.currentTaskIndex == self.lastTaskIndex:
@@ -65,12 +68,12 @@ class FCFS_Migrate(Scheduler):
         return task_from_wl
 
     def __update_info(self,cluster, tasks):
-        self.info = self.monitor.monitor(cluster, tasks, self.currentTime, self.timeStep)
+        self.info = self.monitor.monitor(cluster, tasks, self.currentTime, self.timeStep, self.arrival_task_num)
 
     def __migrate(self, cluster, tasks):
         if self.info['free_rate'] == 0.0:
             return False
-        if self.info['fragment_rate'] / self.info['free_rate'] > self.fragment_alpha_rate:
+        if self.info['fragment_rate'] > self.fragment_alpha_rate:
             allow_migrate_nodes = list(filter(lambda node: node.cards !=0 and node.cards != 8, cluster.nodes))
             allow_migrate_tasks = []
             for node in allow_migrate_nodes:
@@ -79,6 +82,7 @@ class FCFS_Migrate(Scheduler):
                         allow_migrate_tasks.append(task)
             if len(allow_migrate_tasks) or len(allow_migrate_nodes) <= 1:
                 return False
+            print(len(allow_migrate_tasks), len(allow_migrate_nodes))
             ans = self.migrateSolver.solver(allow_migrate_nodes, allow_migrate_tasks, self.currentTime)     #! 获取迁移求解器的答案，答案为source_node和target_node的编号和任务的id
         else:
             return False
@@ -113,9 +117,7 @@ class FCFS_Migrate(Scheduler):
             self.__adjust(cluster)
 
             #打印信息
-            print(f"-----------time: {self.currentTime}-----------")
-            print(f"free_rate:{self.info['free_rate']}, task num in wl:{self.info['num task in wl']}, unused_nodes:{self.info['unused_node_num']}, fragment_rate:{self.info['fragment_rate']},tasks from wl: {task_from_wl}")
-            print("-------------------------------------------")
+            print(f"time: {self.currentTime}, effiency:{(1.0-self.info['free_rate'])*100}%, task num in wl:{self.info['num task in wl']}, unused_nodes:{self.info['unused_node_num']}, fragment_rate:{self.info['fragment_rate']},tasks from wl: {task_from_wl}")
 
             #7.时间递增    
             self.__time_add()
