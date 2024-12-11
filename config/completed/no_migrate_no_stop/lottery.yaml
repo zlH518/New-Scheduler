@@ -1,0 +1,53 @@
+cluster:
+  cards_per_node: 8
+  name: cluster
+  node_num: 500
+  priority: best fit
+config:
+  save_path: config
+logger:
+  filemode: w
+  format: '%(asctime)s - %(levelname)s - %(message)s'
+  log_file: logs/cluster_simulation.log
+  log_level: INFO
+monitor:
+  base_path: monitor
+  frag_alpha: 0.2
+  free_rate_alpha: 0.008
+  name: monitor
+  save_path: monitor/FCFS_Migrate_20241211_170643.json
+plotter:
+  save_path: figure
+schedulers:
+- migrateSolver:
+    checkpoint_weight: 1.0
+    load_balance_weight: 1.0
+    migration_cost_weight: 1.0
+  name: FCFS_Migrate
+  time_step: 3600
+  waitingList:
+    wl_alpha: 100
+    wl_free_max_rate: 0.8
+    wl_free_min_rate: 0.1
+    wl_priority: lottery
+    wl_tasks_num: 500
+- fragment_alpha_rate: 0.005
+  migrateSolver:
+    checkpoint_weight: 1.0
+    load_balance_weight: 1.0
+    migration_cost_rate: 0.2
+    migration_cost_weight: 1.0
+  migrate_times: 1
+  name: FCFS_Migrate
+  time_step: 900
+  waitingList:
+    lottery_max_rate: 0.5
+    wl_priority: first come first sever
+tasks:
+- merge_data_path: data/snt9b/merge_data.csv
+  name: snt9b
+  path: data/snt9b/sourceDataSnt9b/*.json
+  save_csv_path: data/snt9b/csv
+  type: multi
+  useful_data_path: data/snt9b/useful_data.csv
+timestamp: '20241211_170643'

@@ -29,11 +29,13 @@ class FCFS_Migrate(Scheduler):
             'throughput': 0.0,
             'fragment_rate': 0.0,
             'avg_waiting_time': 0.0,
-            'avg_completion_time': 0.0,
-            'avg_migration_times': 0.0,
-            'unused_node_num': 500,
-            'num task in wl': 0,
-            'arrival_task_num': 0
+            'avg_completed_time': 0.0,
+            'predict_waiting_time': 0.0,
+            'avg_duration_time': 0.0,
+            'unused_node_num': 0,
+            'num_task_in_wl': 0,
+            'num_task_running': 0,
+            'num_task_completed': 0
         }
 
     def __release_tasks(self, cluster):
@@ -71,21 +73,22 @@ class FCFS_Migrate(Scheduler):
         self.info = self.monitor.monitor(cluster, tasks, self.currentTime, self.timeStep, self.arrival_task_num)
 
     def __migrate(self, cluster, tasks):
-        if self.info['free_rate'] == 0.0:
-            return False
-        if self.info['fragment_rate'] > self.fragment_alpha_rate:
-            allow_migrate_nodes = list(filter(lambda node: node.cards !=0 and node.cards != 8, cluster.nodes))
-            allow_migrate_tasks = []
-            for node in allow_migrate_nodes:
-                for task in node.tasks:
-                    if task.migration_times < self.schedulerConfig['migrate_times']:
-                        allow_migrate_tasks.append(task)
-            if len(allow_migrate_tasks) or len(allow_migrate_nodes) <= 1:
-                return False
-            print(len(allow_migrate_tasks), len(allow_migrate_nodes))
-            ans = self.migrateSolver.solver(allow_migrate_nodes, allow_migrate_tasks, self.currentTime)     #! 获取迁移求解器的答案，答案为source_node和target_node的编号和任务的id
-        else:
-            return False
+        # if self.info['free_rate'] == 0.0:
+        #     return False
+        # if self.info['fragment_rate'] > self.fragment_alpha_rate:
+        #     allow_migrate_nodes = list(filter(lambda node: node.cards !=0 and node.cards != 8, cluster.nodes))
+        #     allow_migrate_tasks = []
+        #     for node in allow_migrate_nodes:
+        #         for task in node.tasks:
+        #             if task.migration_times < self.schedulerConfig['migrate_times']:
+        #                 allow_migrate_tasks.append(task)
+        #     if len(allow_migrate_tasks) or len(allow_migrate_nodes) <= 1:
+        #         return False
+        #     print(len(allow_migrate_tasks), len(allow_migrate_nodes))
+        #     ans = self.migrateSolver.solver(allow_migrate_nodes, allow_migrate_tasks, self.currentTime)     #! 获取迁移求解器的答案，答案为source_node和target_node的编号和任务的id
+        # else:
+        #     return False
+        pass
     def __adjust(self, cluster):
         #TODO:根据当前的集群状况来决定是否调整，调整目前仅包括停止大的任务
         pass
@@ -117,7 +120,7 @@ class FCFS_Migrate(Scheduler):
             self.__adjust(cluster)
 
             #打印信息
-            print(f"time: {self.currentTime}, effiency:{(1.0-self.info['free_rate'])*100}%, task num in wl:{self.info['num task in wl']}, unused_nodes:{self.info['unused_node_num']}, fragment_rate:{self.info['fragment_rate']},tasks from wl: {task_from_wl}")
+            print(f"time: {self.currentTime}, effiency:{(1.0-self.info['free_rate'])*100}%, task num in wl:{self.info['num_task_in_wl']}, unused_nodes:{self.info['unused_node_num']}, fragment_rate:{self.info['fragment_rate']},tasks from wl: {task_from_wl}, predict_waiting_time:{self.info['predict_waiting_time']}s")
 
             #7.时间递增    
             self.__time_add()

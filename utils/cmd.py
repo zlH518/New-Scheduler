@@ -3,7 +3,7 @@ import argparse
 
 def _add_base_cmd(parser):
     parser.add_argument(
-        "--config", type=str, default= "example1/config.yaml", help="Path of config"
+        "--config", type=str, default="example1/config.yaml", help="Path of config"
     )
     parser.add_argument(
         "--seed", type=int, default=3407, help="Random seed in integer, default is 3407"

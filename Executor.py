@@ -49,7 +49,7 @@ class Executor:
                 cluster = Cluster(self.cluster)  
                 tasks = Tasks(config)
                 monitorConfig = self.monitor
-                monitorConfig["save_path"] = os.path.join(monitorConfig['base_path'],scheduler_name + f"_{self.config['timestamp']}.csv")
+                monitorConfig["save_path"] = os.path.join(monitorConfig['base_path'],scheduler_name + f"_{self.config['timestamp']}.json")
                 monitor = Monitor(self.monitor)
                 scheduler.run(cluster, tasks, monitor)
                 self.__save_config()
