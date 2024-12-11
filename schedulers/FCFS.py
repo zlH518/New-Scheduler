@@ -40,12 +40,15 @@ class FCFS(Scheduler):
     
     def __new_tasks_arrival(self, tasks):
         if self.currentTaskIndex < self.lastTaskIndex:
+            self.arrival_task_num = 0
             while tasks[self.currentTaskIndex].create_time <= self.currentTime:
                 # print(f"{tasks[index].task_id} task is in wl")
+                self.arrival_task_num = self.arrival_task_num + 1
                 self.waintingList.add_task(tasks[self.currentTaskIndex])
                 self.currentTaskIndex += 1
                 if self.currentTaskIndex == self.lastTaskIndex:
                     break
+
 
     def __put_task_from_wl_2_cluster(self, cluster):
         if len(self.waintingList) > 0:
@@ -61,7 +64,7 @@ class FCFS(Scheduler):
                         self.waintingList.delete_task(task.task_id)
 
     def __update_info(self,cluster, tasks):
-        self.info = self.monitor.monitor(cluster, tasks, self.currentTime, self.timeStep)
+        self.info = self.monitor.monitor(cluster, tasks, self.currentTime, self.timeStep, self.arrival_task_num)
 
     def __migrate(self, cluster):
         pass

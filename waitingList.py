@@ -10,8 +10,8 @@ class WaitingList:
         self.priority = wlConfig["wl_priority"]
         self.task_num = 0
         self.avg_cards = 0
-        if self.priority == "highest response ratio next":
-            self.alpha = wlConfig["wl_alpha"]
+        # if self.priority == "highest response ratio next":
+        #     self.alpha = wlConfig["wl_alpha"]
 
     def add_task(self, task):
         task.status = 'WAIT'
@@ -25,23 +25,53 @@ class WaitingList:
         if len(self.wl) == 1:
             return self.wl[0]
         if self.priority == "cards_big_first":
-            tasks = sorted(self.wl, key=lambda task: task.cards * task.node_num, reverse=True)
-            return tasks[0] 
+            tasks = list(filter(lambda task: (current_time - task.create_time)/task.duration_time >= self.config['lottery_max_rate'], self.wl))
+            if len(tasks) != 0:     
+                tasks = sorted(tasks, key=lambda task: task.create_time, reverse=False)
+                return tasks[0]
+            else:
+                tasks = sorted(self.wl, key=lambda task: task.cards * task.node_num, reverse=True)
+                return tasks[0] 
         elif self.priority == "cards_small_first":
-            tasks = sorted(self.wl, key=lambda task: task.cards * task.node_num, reverse=False)
-            return tasks[0]
+            tasks = list(filter(lambda task: (current_time - task.create_time)/task.duration_time >= self.config['lottery_max_rate'], self.wl))
+            if len(tasks) != 0:     
+                tasks = sorted(tasks, key=lambda task: task.create_time, reverse=False)
+                return tasks[0]
+            else:
+                tasks = sorted(self.wl, key=lambda task: task.cards * task.node_num, reverse=False)
+                return tasks[0]
         elif self.priority == "first come first sever":
-            tasks = sorted(self.wl, key=lambda task: task.create_time, reverse=False)
-            return tasks[0]
-        elif self.priority == "last come last sever":
-            tasks = sorted(self.wl, key=lambda task: task.create_time, reverse=True)
-            return tasks[0]
+            tasks = list(filter(lambda task: (current_time - task.create_time)/task.duration_time >= self.config['lottery_max_rate'], self.wl))
+            if len(tasks) != 0:     
+                tasks = sorted(tasks, key=lambda task: task.create_time, reverse=False)
+                return tasks[0]
+            else:
+                tasks = sorted(self.wl, key=lambda task: task.create_time, reverse=False)
+                return tasks[0]
+        elif self.priority == "last come first sever":
+            tasks = list(filter(lambda task: (current_time - task.create_time)/task.duration_time >= self.config['lottery_max_rate'], self.wl))
+            if len(tasks) != 0:     
+                tasks = sorted(tasks, key=lambda task: task.create_time, reverse=False)
+                return tasks[0]
+            else:
+                tasks = sorted(self.wl, key=lambda task: task.create_time, reverse=True)
+                return tasks[0]
         elif self.priority == "short_time_first":
-            tasks = sorted(self.wl, key=lambda task: task.duration_time, reverse=False)
-            return tasks[0]
+            tasks = list(filter(lambda task: (current_time - task.create_time)/task.duration_time >= self.config['lottery_max_rate'], self.wl))
+            if len(tasks) != 0:     
+                tasks = sorted(tasks, key=lambda task: task.create_time, reverse=False)
+                return tasks[0]
+            else:
+                tasks = sorted(self.wl, key=lambda task: task.duration_time, reverse=False)
+                return tasks[0]
         elif self.priority == "long_time_first":
-            tasks = sorted(self.wl, key=lambda task: task.duration_time, reverse=True)
-            return tasks[0]
+            tasks = list(filter(lambda task: (current_time - task.create_time)/task.duration_time >= self.config['lottery_max_rate'], self.wl))
+            if len(tasks) != 0:     
+                tasks = sorted(tasks, key=lambda task: task.create_time, reverse=False)
+                return tasks[0]
+            else:
+                tasks = sorted(self.wl, key=lambda task: task.duration_time, reverse=True)
+                return tasks[0]
         elif self.priority == "highest response ratio next":
             for task in self.wl:
                 waiting_time = current_time - task.create_time

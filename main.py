@@ -11,9 +11,10 @@ if __name__ == "__main__":
     with open(args.config, 'r', encoding="utf-8") as f:
         config = yaml.safe_load(f)
     config['timestamp'] = datetime.now().strftime("%Y%m%d_%H%M%S")
+    print(config)
     utils.setup_logging(config["logger"])
     executor = Executor(config)
     executor.executor()
-    Plot.plot(config)
+    # Plot.plot(config)
 
 

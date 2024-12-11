@@ -4,11 +4,14 @@ from migrateSolver import MigrateSolver
 class Scheduler:
     def __init__(self,schedulerConfig):
         self.schedulerConfig = schedulerConfig
-        self.waitingListConfig = schedulerConfig['waitingList']
-        self.migrateSolverConfig = schedulerConfig['migrateSolver']
+        
+        if schedulerConfig['waitingList'] is not None:
+            self.waitingListConfig = schedulerConfig['waitingList']
+            self.waintingList = WaitingList(self.waitingListConfig)
 
-        self.waintingList = WaitingList(self.waitingListConfig)
-        self.migrateSolver = MigrateSolver(self.migrateSolverConfig)
+        if schedulerConfig['migrateSolver'] is not None:
+            self.migrateSolverConfig = schedulerConfig['migrateSolver']
+            self.migrateSolver = MigrateSolver(self.migrateSolverConfig)
 
 
 

@@ -1,6 +1,6 @@
 cluster:
   name: "cluster"
-  node_num: 3000
+  node_num: 2000
   cards_per_node: 8
   priority: "best fit"    #best fit、big first、best similar
 tasks:
@@ -19,10 +19,10 @@ monitor:
   frag_alpha: 0.2
   free_rate_alpha: 0.008
 schedulers:
-  # - name: "FCFS"        #先到先服务的baseline
-  #   time_step: 10000
+  # - name: "FCFS_Migrate"        #先到先服务的baseline
+  #   time_step: 3600         #每分钟调度一次
   #   waitingList:
-  #     wl_priority: "first come first sever"    #cards_big_first、cards_small_first、first come first sever、last come last sever、highters response reatio next、dynamic、short_time_first、long_time_first、lottery            
+  #     wl_priority: "cards_big_first"    #cards_big_first、cards_small_first、first come first sever、last come last sever、highters response reatio next、dynamic、short_time_first、long_time_first、lottery            
   #     wl_alpha: 100       #选择高响应比的时候需要设置的响应系数     
   #     # wl_migreate_priority: "big first"   #small first、wait list、best fit piece first  
   #     wl_free_max_rate: 0.8   #选择动态的时候需要设置wl转化的集群空闲率最高阈值
@@ -46,12 +46,15 @@ schedulers:
   #     checkpoint_weight: 1.0     #有无checkpoint的影响权重
   #     load_balance_weight: 1.0    #负载是否均衡的影响权重
   - name: "FCFS_Migrate"        #带迁移的策略
-    time_step: 900
+    time_step: 3600
     fragment_alpha_rate: 0.005      
     migrate_times: 1              #每个任务允许迁移的最大次数
     waitingList:
-      wl_priority: "first come first sever"    #cards_big_first、cards_small_first、first come first sever、last come last sever、highters response reatio next、dynamic、short_time_first、long_time_first、lottery、multi_queue  
-      lottery_max_rate: 0.5         
+      wl_priority: "last come first sever"    #cards_big_first、cards_small_first、first come first sever、last come last sever、highest response ratio next、dynamic、short_time_first、long_time_first、lottery、multi_queue  
+      lottery_max_rate: 0.5 
+      wl_tasks_num: 500
+      wl_free_max_rate: 0.8
+      wl_free_min_rate: 0.1        
     migrateSolver:
       migration_cost_weight: 1.0    #迁移代价的影响权重
       checkpoint_weight: 1.0     #有无checkpoint的影响权重

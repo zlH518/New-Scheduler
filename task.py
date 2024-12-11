@@ -25,8 +25,8 @@ class Task:
         self.release = False
 
         # real_parameter
-        self.real_start_time = None
-        self.real_end_time = None
+        self.real_start_time = 0
+        self.real_end_time = 0
         Task.TaskId += 1
 
     def __repr__(self):
@@ -80,9 +80,10 @@ class Tasks:
 
     def filter(self):
         if self.config['type'] == 'single':
-            data = pd.read_csv(self.config['merge_data_path'],usecols=['metadata.create_time', 'status.duration', 'status.start_time', 'spec.resource.flavor_id', 'spec.resource.node_count'],low_memory=False)
+            data = pd.read_csv(self.config['merge_data_path'],usecols=['metadata.create_time', 'status.duration', 'status.start_time', 'spec.resource.flavor_id', 'spec.resource.node_count', 'status.phase'],low_memory=False)
             data = data[(data['spec.resource.node_count'] == 1)]
-            data = data[['metadata.create_time', 'status.duration', 'status.start_time', 'spec.resource.flavor_id', 'spec.resource.node_count']]
+            # data = data[(data['status.phase'] == 'Completed')]
+            data = data[['metadata.create_time', 'status.duration', 'status.start_time', 'spec.resource.flavor_id', 'spec.resource.node_count', 'status.phase']]
             data['spec.resource.flavor_id'] = data['spec.resource.flavor_id'].replace({
                 'modelarts.pool.visual.8xlarge': 8,
                 'modelarts.pool.visual.4xlarge': 4,
@@ -109,9 +110,10 @@ class Tasks:
             logging.info(f"useful data is saved in {self.config['useful_data_path']}")
       
         elif self.config['type'] == 'multi':
-            data = pd.read_csv(self.config['merge_data_path'],usecols=['metadata.create_time', 'status.duration', 'status.start_time', 'spec.resource.flavor_id', 'spec.resource.node_count'], low_memory=False)
+            data = pd.read_csv(self.config['merge_data_path'],usecols=['metadata.create_time', 'status.duration', 'status.start_time', 'spec.resource.flavor_id', 'spec.resource.node_count', 'status.phase'], low_memory=False)
             data = data[(data['spec.resource.node_count'] <= 500)]
-            data = data[['metadata.create_time', 'status.duration', 'status.start_time', 'spec.resource.flavor_id', 'spec.resource.node_count']]
+            # data = data[(data['status.phase'] == 'Completed')]
+            data = data[['metadata.create_time', 'status.duration', 'status.start_time', 'spec.resource.flavor_id', 'spec.resource.node_count', 'status.phase']]
             data['spec.resource.flavor_id'] = data['spec.resource.flavor_id'].replace({
                 'modelarts.pool.visual.8xlarge': 8,
                 'modelarts.pool.visual.4xlarge': 4,
